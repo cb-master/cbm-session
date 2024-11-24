@@ -95,7 +95,7 @@ class Handler
 	public function _read($id):string
 	{
 		$data = $this->to_array(Model::conn()->table($this->table)->select()->where([$this->id => $id])->single());
-		return $data[$this->session];
+		return $data[$this->session] ?? '';
 	}
 
 	// Insert DB Data
