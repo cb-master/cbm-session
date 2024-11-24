@@ -1,0 +1,21 @@
+{
+    "name": "cb-master/cbm-session",
+    "description": "Cloud Bill Master Session Handler Repo",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "CBM\\Session\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Showket Ahmed",
+            "email": "riyadhtayf@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "cb-master/cb-model": "dev-main"
+    }
+}
