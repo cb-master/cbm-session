@@ -47,7 +47,7 @@ class Handler
 	{
 		// Check Database Model Exist
 		try {
-			if(!class_exists('Model')){
+			if(!class_exists(Model::class)){
 				throw new SessionException("'CBM\Model\Model' Class Does Not Exist", 50000);
 			}
 		} catch (SessionException $e) {
