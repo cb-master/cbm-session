@@ -12,6 +12,7 @@
 namespace CBM\Session;
 
 use CBM\Model\Model;
+use CBM\SessionHelper\SessionException;
 
 class Handler
 {
@@ -44,6 +45,14 @@ class Handler
 
     public function begin()
 	{
+		// Check Database Model Exist
+		try {
+			if(!class_exists('Model')){
+				throw new SessionException("'CBM\Model\Model' Class Does Not Exist", 50000);
+			}
+		} catch (SessionException $e) {
+			echo $e->message();
+		}
 		// Create Table if Not Exist
 		if(!self::$exist){
 			$this->session_table_exist();
@@ -129,7 +138,7 @@ class Handler
 	private function session_table_exist()
 	{
 		if(!Model::conn()->table_exist($this->table)){
-			Model::conn()->table($this->table)->addColumn($this->id, 'varchar(255)')
+			Model::conn()->table($this->table)->addColumn($this->id, 'varchar(50)')
 						->addColumn($this->access, 'int(12)')
 						->addColumn($this->session, 'longtext')
 						->primary($this->id)

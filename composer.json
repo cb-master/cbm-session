@@ -5,6 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
+            "CBM\\SessionHelper\\": "helper/",
             "CBM\\Session\\": "src/"
         }
     },
