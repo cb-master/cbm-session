@@ -1,5 +1,5 @@
 {
-    "name": "cb-master/cb-session",
+    "name": "cb-master/cbm-session",
     "description": "Cloud Bill Master Session Handler Repo",
     "type": "library",
     "license": "MIT",
@@ -17,6 +17,6 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "cb-master/cb-model": "^1.0"
+        "cb-master/cbm-model": "^1.0"
     }
 }
