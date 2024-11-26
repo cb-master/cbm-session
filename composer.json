@@ -1,6 +1,7 @@
 {
     "name": "cb-master/cbm-session",
     "description": "Cloud Bill Master Session Handler Repo",
+    "keywords": ["session", "php session", "session handler"],
     "type": "library",
     "license": "MIT",
     "autoload": {

@@ -16,18 +16,6 @@ use CBM\SessionHelper\SessionException;
 
 class Handler
 {
-    // DB ID
-    public $id = "session_id";
-
-    // Table Name Var
-    public $table = "session";
-
-    // Data Var
-    private $session = "session_data";
-
-    // Last Update
-    private $access = "last_access";
-
 	// Session Name
 	public static String $name = 'laika';
 
@@ -40,10 +28,44 @@ class Handler
 	// Session Path
 	public static String $path = '/';
 
+
+
+    // DB ID
+    private $id = "session_id";
+
+    // Table Name Var
+    private $table = "session";
+
+    // Data Var
+    private $session = "session_data";
+
+    // Last Update
+    private $access = "last_access";
+
 	// Table Exist
 	private static Bool $exist = false;
 
-    public function begin()
+	// Session in Database
+	private static Bool $session_in_db = true;
+
+	// Session Instance
+	private static null|object $instance = null;
+
+	// Set Session in Database
+	public static function session_in_db(bool $bool = true):void
+	{
+		self::$session_in_db = $bool;
+	}
+
+	// Load Instance
+	protected static function instance()
+	{
+		return self::$instance ?: new Static;
+	}
+
+
+	// Start Session
+    protected function start()
 	{
 		// Check Database Model Exist
 		try {
@@ -53,23 +75,26 @@ class Handler
 		} catch (SessionException $e) {
 			echo $e->message();
 		}
-		// Create Table if Not Exist
-		if(!self::$exist){
-			$this->session_table_exist();
-		}
 
         // Start Session
 		if(session_status() !== PHP_SESSION_ACTIVE)
 		{
-			session_set_save_handler(
-				array($this, "_open"),
-				array($this, "_close"),
-				array($this, "_read"),
-				array($this, "_write"),
-				array($this, "_destroy"),
-				array($this, "_gc")
-			);
-			register_shutdown_function("session_write_close");
+			if(self::$session_in_db){
+				// Create Table if Not Exist
+				if(!self::$exist){
+					$this->session_table_exist();
+				}
+
+				session_set_save_handler(
+					array($this, "open"),
+					array($this, "close"),
+					array($this, "read"),
+					array($this, "write"),
+					array($this, "destroy"),
+					array($this, "gc")
+				);
+				// register_shutdown_function("session_write_close");
+			}
 
 			// Set Session Name
             session_name(self::$name);
@@ -89,26 +114,26 @@ class Handler
 	}
 
 	// Open DB Connection
-	public function _open($path, $name):bool
+	public function open($path, $name):bool
 	{
 		return true;
 	}
 
 	// Close DB Connection
-	public function _close():bool
+	public function close():bool
 	{
 		return true;
 	}
 
 	// Read DB Data
-	public function _read($id):string
+	public function read($id):string
 	{
 		$data = $this->to_array(Model::conn()->table($this->table)->select()->where([$this->id => $id])->single());
 		return $data[$this->session] ?? '';
 	}
 
 	// Insert DB Data
-	public function _write($id, $data):bool
+	public function write($id, $data):bool
 	{
 		// Create time stamp
 		$access = time();
@@ -123,13 +148,13 @@ class Handler
 	}
 
 	// Destroy DB Data
-	public function _destroy($id):bool
+	public function destroy($id):bool
 	{
 		return Model::conn()->table($this->table)->where([$this->id => $id])->pop() ? true : false;
 	}
 
 	// Garbage Collection
-	public function _gc($max):bool
+	public function gc($max):bool
 	{
 		return Model::conn()->table($this->table)->where([$this->access => (time() - $max)], '<')->pop() ? true : false;
 	}
@@ -138,14 +163,20 @@ class Handler
 	private function session_table_exist()
 	{
 		if(!Model::conn()->table_exist($this->table)){
-			Model::conn()->table($this->table)->addColumn($this->id, 'varchar(50)')
+			$this->create_table();
+		}
+		self::$exist = true;
+	}
+
+	// Create Session Table
+	private function create_table():void
+	{
+		Model::conn()->table($this->table)->addColumn($this->id, 'varchar(50)')
 						->addColumn($this->access, 'int(12)')
 						->addColumn($this->session, 'longtext')
 						->primary($this->id)
 						->index($this->access)
 						->create();
-		}
-		self::$exist = true;
 	}
 
 	// Convert to Array
