@@ -12,7 +12,7 @@
 namespace CBM\Session;
 
 use CBM\Model\Model;
-use CBM\Core\Converter\Converter;
+use CBM\Core\Support\Convert;
 use CBM\SessionHelper\SessionException;
 
 class Handler
@@ -129,7 +129,7 @@ class Handler
 	// Read DB Data
 	public function read($id):string
 	{
-		$data = Converter::to_array(Model::table($this->table)->select()->where([$this->id => $id])->single());
+		$data = Convert::toArray(Model::table($this->table)->select()->where([$this->id => $id])->single());
 		return $data[$this->session] ?? '';
 	}
 
