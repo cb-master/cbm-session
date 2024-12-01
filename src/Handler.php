@@ -12,6 +12,7 @@
 namespace CBM\Session;
 
 use CBM\Model\Model;
+use CBM\Core\Converter\Converter;
 use CBM\SessionHelper\SessionException;
 
 class Handler
@@ -128,7 +129,7 @@ class Handler
 	// Read DB Data
 	public function read($id):string
 	{
-		$data = $this->to_array(Model::conn()->table($this->table)->select()->where([$this->id => $id])->single());
+		$data = Converter::to_array(Model::table($this->table)->select()->where([$this->id => $id])->single());
 		return $data[$this->session] ?? '';
 	}
 
@@ -144,25 +145,25 @@ class Handler
 			$this->session  =>  $data
 		];
 
-		return Model::conn()->table($this->table)->replace($array) ? true : false;
+		return Model::table($this->table)->replace($array) ? true : false;
 	}
 
 	// Destroy DB Data
 	public function destroy($id):bool
 	{
-		return Model::conn()->table($this->table)->where([$this->id => $id])->pop() ? true : false;
+		return Model::table($this->table)->where([$this->id => $id])->pop() ? true : false;
 	}
 
 	// Garbage Collection
 	public function gc($max):bool
 	{
-		return Model::conn()->table($this->table)->where([$this->access => (time() - $max)], '<')->pop() ? true : false;
+		return Model::table($this->table)->where([$this->access => (time() - $max)], '<')->pop() ? true : false;
 	}
 
 	// Create Table if Not Exist
 	private function session_table_exist()
 	{
-		if(!Model::conn()->table_exist($this->table)){
+		if(!Model::table($this->table)->exist()){
 			$this->create_table();
 		}
 		self::$exist = true;
@@ -171,20 +172,11 @@ class Handler
 	// Create Session Table
 	private function create_table():void
 	{
-		Model::conn()->table($this->table)->addColumn($this->id, 'varchar(50)')
+		Model::table($this->table)->addColumn($this->id, 'varchar(50)')
 						->addColumn($this->access, 'int(12)')
 						->addColumn($this->session, 'longtext')
 						->primary($this->id)
 						->index($this->access)
 						->create();
-	}
-
-	// Convert to Array
-	private function to_array(array|object $data):array
-	{
-		if(is_object($data)){
-			return json_decode(json_encode($data), true);
-		}
-		return $data;
 	}
 }
