@@ -12,7 +12,6 @@
 namespace CBM\Session;
 
 use CBM\Model\Model;
-use CBM\Core\Support\Convert;
 use CBM\SessionHelper\SessionException;
 
 class Handler
@@ -53,6 +52,9 @@ class Handler
 	private static null|object $instance = null;
 
 	// Set Session in Database
+	/**
+	 * @param bool $bool - Default is true. Use false To Store Session in system tmp folder.
+	 */
 	public static function session_in_db(bool $bool = true):void
 	{
 		self::$session_in_db = $bool;
@@ -115,7 +117,7 @@ class Handler
 	}
 
 	// Open DB Connection
-	public function open($path, $name):bool
+	public function open():bool
 	{
 		return true;
 	}
@@ -129,7 +131,8 @@ class Handler
 	// Read DB Data
 	public function read($id):string
 	{
-		$data = Convert::toArray(Model::table($this->table)->select()->where([$this->id => $id])->single());
+		$dbData = Model::table($this->table)->select()->where([$this->id => $id])->single();
+		$data = is_array($dbData) ? $dbData : self::toArray($dbData);
 		return $data[$this->session] ?? '';
 	}
 
@@ -178,5 +181,14 @@ class Handler
 						->primary($this->id)
 						->index($this->access)
 						->create();
+	}
+
+	// Object To Array
+	/**
+	 * @param array|object $obj - Required Argument
+	 */
+	private function toArray(array|object $obj):array
+	{
+		return json_decode(json_encode($obj), true);
 	}
 }

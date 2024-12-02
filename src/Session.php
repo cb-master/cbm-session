@@ -13,7 +13,11 @@ namespace CBM\Session;
 
 final class Session Extends Handler
 {
-	/** put data into the session **/
+	// Set Session Data
+	/**
+	 * @param array $array - Required Argument
+	 * @param string $for - Default is 'APP'. Session Will Set Like $_SESSION['APP']['key']
+	 */
 	public static function set(array $array, string $for = "APP"):bool
 	{
 		// Start Session
@@ -27,6 +31,10 @@ final class Session Extends Handler
 	}
 
 	// Get Session Value
+	/**
+	 * @param string $key - Required Argument
+	 * @param string $for - Default is 'APP'. Session Will Return $_SESSION['APP']['key']
+	 */
 	public static function get(string $key, string $for = "APP"):string|array
 	{
 		// Start Session
@@ -36,6 +44,10 @@ final class Session Extends Handler
 	}
 
 	// Unset Session
+	/**
+	 * @param string|array $key - Required Argument. For Array, Set Index Array of Keys.
+	 * @param string $for - Default is 'APP'. Session Will Unset $_SESSION['APP']['key']
+	 */
 	public static function pop(string|array $key, string $for = "APP"):bool
 	{
 		// Start Session
