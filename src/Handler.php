@@ -31,10 +31,10 @@ class Handler
 
 
     // DB ID
-    private $id = "session_id";
+    private $id = "id";
 
     // Table Name Var
-    private $table = "session";
+    private $table = "sessions";
 
     // Data Var
     private $session = "session_data";
@@ -175,9 +175,9 @@ class Handler
 	// Create Session Table
 	private function create_table():void
 	{
-		Model::table($this->table)->addColumn($this->id, 'varchar(50)')
-						->addColumn($this->access, 'int(12)')
-						->addColumn($this->session, 'longtext')
+		Model::table($this->table)->column($this->id, 'varchar(50)')
+						->column($this->access, 'int(12)')
+						->column($this->session, 'longtext')
 						->primary($this->id)
 						->index($this->access)
 						->create();
