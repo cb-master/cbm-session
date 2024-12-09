@@ -20,7 +20,7 @@
             "email":"riyadhtayf@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "cb-master/cbm-model": "dev-main"
     }
