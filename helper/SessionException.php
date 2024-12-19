@@ -1,11 +1,8 @@
 <?php
 /**
- * APP Name:        Laika Session Model
- * APP Provider:    Showket Ahmed
- * APP Link:        https://cloudbillmaster.com
- * APP Contact:     riyadtayf@gmail.com
- * APP Version:     1.0.0
- * APP Company:     Cloud Bill Master Ltd.
+ * Project: Laika MVC Framework
+ * Author Name: Showket Ahmed
+ * Author Email: riyadhtayf@gmail.com
  */
 
 // Namespace
