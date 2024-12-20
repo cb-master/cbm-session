@@ -17,9 +17,9 @@ final class Session Extends Handler
 	 */
 	public static function set(array $array, string $for = "APP"):bool
 	{
+		$for = strtoupper($for);
 		// Start Session
 		self::instance()->start();
-
 		// Set Session Value
 		foreach($array as $key => $val){
 			$_SESSION[$for][$key] = $val;
@@ -34,6 +34,7 @@ final class Session Extends Handler
 	 */
 	public static function get(string $key, string $for = "APP"):string|array
 	{
+		$for = strtoupper($for);
 		// Start Session
 		self::instance()->start();
 		// Get Session Data
@@ -47,6 +48,7 @@ final class Session Extends Handler
 	 */
 	public static function pop(string|array $key, string $for = "APP"):bool
 	{
+		$for = strtoupper($for);
 		// Start Session
 		self::instance()->start();
 		
