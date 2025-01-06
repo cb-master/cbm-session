@@ -100,6 +100,9 @@ class Handler
             session_name(self::$name);
             ini_set("session.use_only_cookies",true);
             ini_set("session.use_strict_mode",true);
+			ini_set('session.gc_probability', 1);
+			ini_set('session.gc_divisor', 100);
+            ini_set("session.gc_maxlifetime",strtotime("+5 minutes") - time());
             // Set Parameters
             session_set_cookie_params([
                 "path"      =>  self::$path,
