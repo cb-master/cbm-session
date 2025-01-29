@@ -6,10 +6,9 @@
  */
 
 // Namespace
-namespace CBM\Session;
+namespace CBM\SessionHelper;
 
 use CBM\Model\Model;
-use CBM\SessionHelper\SessionException;
 
 class Handler
 {
@@ -131,7 +130,7 @@ class Handler
 	// Read DB Data
 	public function read($id):string
 	{
-		$dbData = Model::table($this->table)->select()->where([$this->id => $id])->single();
+		$dbData = Model::table($this->table)->where([$this->id => $id])->single();
 		$data = is_array($dbData) ? $dbData : self::toArray($dbData);
 		return $data[$this->session] ?? '';
 	}
@@ -175,12 +174,13 @@ class Handler
 	// Create Session Table
 	private function create_table():void
 	{
-		Model::table($this->table)->column($this->id, 'varchar(50)')
-						->column($this->access, 'int(12)')
-						->column($this->session, 'longtext')
-						->primary($this->id)
-						->index($this->access)
-						->create();
+		Model::table($this->table)
+				->column($this->id, 'VARCHAR(50) ')
+				->column($this->access, 'INT(12)')
+				->column($this->session, 'LONGTEXT')
+				->primary($this->id)
+				->index($this->access)
+				->create();
 	}
 
 	// Object To Array

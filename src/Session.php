@@ -3,10 +3,15 @@
  * Project: Laika MVC Framework
  * Author Name: Showket Ahmed
  * Author Email: riyadhtayf@gmail.com
+ * Project: Laika MVC Framework
+ * Author Name: Showket Ahmed
+ * Author Email: riyadhtayf@gmail.com
  */
 
 // Namespace
 namespace CBM\Session;
+
+use CBM\SessionHelper\Handler;
 
 final class Session Extends Handler
 {
@@ -20,14 +25,18 @@ final class Session Extends Handler
 		$for = strtoupper($for);
 		// Start Session
 		self::instance()->start();
+
 		// Set Session Value
+		foreach($array as $key => $val){
+			$_SESSION[$for][$key] = $val;
+		}
+        return true;
 		foreach($array as $key => $val){
 			$_SESSION[$for][$key] = $val;
 		}
         return true;
 	}
 
-	// Get Session Value
 	/**
 	 * @param string $key - Required Argument
 	 * @param string $for - Default is 'APP'. Session Will Return $_SESSION['APP']['key']
@@ -37,11 +46,13 @@ final class Session Extends Handler
 		$for = strtoupper($for);
 		// Start Session
 		self::instance()->start();
+		$for = strtoupper($for);
+		// Start Session
+		self::instance()->start();
 		// Get Session Data
 		return $_SESSION[$for][$key] ?? '';
 	}
 
-	// Unset Session
 	/**
 	 * @param string|array $key - Required Argument. For Array, Set Index Array of Keys.
 	 * @param string $for - Default is 'APP'. Session Will Unset $_SESSION['APP']['key']

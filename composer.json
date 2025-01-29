@@ -22,6 +22,6 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "cb-master/cbm-model": "^1.0"
+        "cb-master/cbm-model": "^2.0"
     }
 }
