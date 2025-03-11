@@ -9,6 +9,8 @@
 namespace CBM\SessionHelper;
 
 use CBM\Model\Model;
+use Exception;
+use Throwable;
 
 class Handler
 {
@@ -27,16 +29,16 @@ class Handler
 
 
     // DB ID
-    private $id = "id";
+    private $id = "ses_id";
 
     // Table Name Var
     private $table = "sessions";
 
     // Data Var
-    private $session = "session_data";
+    private $session = "ses_data";
 
     // Last Update
-    private $access = "last_access";
+    private $access = "ses_last_access";
 
 	// Table Exist
 	private static Bool $exist = false;
@@ -59,7 +61,8 @@ class Handler
 	// Load Instance
 	protected static function instance()
 	{
-		return self::$instance ?: new Static;
+		self::$instance = self::$instance ?: new Static;
+		return self::$instance;
 	}
 
 
@@ -69,10 +72,9 @@ class Handler
 		// Check Database Model Exist
 		try {
 			if(!class_exists(Model::class)){
-				throw new SessionException("'CBM\Model\Model' Class Does Not Exist", 50000);
+				throw new Exception("'CBM\Model\Model' Class Does Not Exist", 50000);
 			}
-		} catch (SessionException $e) {
-			echo $e->message();
+		} catch(Throwable $e){
 		}
 
         // Start Session
@@ -131,7 +133,7 @@ class Handler
 	public function read($id):string
 	{
 		$dbData = Model::table($this->table)->where([$this->id => $id])->single();
-		$data = is_array($dbData) ? $dbData : self::toArray($dbData);
+		$data = json_decode(json_encode($dbData), true);
 		return $data[$this->session] ?? '';
 	}
 
@@ -175,20 +177,11 @@ class Handler
 	private function create_table():void
 	{
 		Model::table($this->table)
-				->column($this->id, 'VARCHAR(50) ')
-				->column($this->access, 'INT(12)')
+				->column($this->id, 'VARCHAR(50)')
+				->column($this->access, 'INT(10)')
 				->column($this->session, 'LONGTEXT')
 				->primary($this->id)
 				->index($this->access)
 				->create();
-	}
-
-	// Object To Array
-	/**
-	 * @param array|object $obj - Required Argument
-	 */
-	private function toArray(array|object $obj):array
-	{
-		return json_decode(json_encode($obj), true);
 	}
 }
