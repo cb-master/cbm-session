@@ -1,9 +1,6 @@
 <?php
 /**
- * Project: Laika MVC Framework
- * Author Name: Showket Ahmed
- * Author Email: riyadhtayf@gmail.com
- * Project: Laika MVC Framework
+ * Project: Cloud Bill Master Session Handler
  * Author Name: Showket Ahmed
  * Author Email: riyadhtayf@gmail.com
  */
@@ -24,7 +21,7 @@ final class Session Extends Handler
 	{
 		$for = strtoupper($for);
 		// Start Session
-		self::instance()->start();
+		self::start();
 
 		// Set Session Value
 		foreach($array as $key => $val){
@@ -45,10 +42,10 @@ final class Session Extends Handler
 	{
 		$for = strtoupper($for);
 		// Start Session
-		self::instance()->start();
+		self::start();
 		$for = strtoupper($for);
 		// Start Session
-		self::instance()->start();
+		self::start();
 		// Get Session Data
 		return $_SESSION[$for][$key] ?? '';
 	}
@@ -61,7 +58,7 @@ final class Session Extends Handler
 	{
 		$for = strtoupper($for);
 		// Start Session
-		self::instance()->start();
+		self::start();
 		
 		$key = is_string($key) ? [$key] : $key;
 
@@ -79,7 +76,7 @@ final class Session Extends Handler
 	public static function end():bool
 	{
 		// Start Session
-		self::instance()->start();
+		self::start();
 		// Unset Session
 		session_unset();
 		// Destroy Session

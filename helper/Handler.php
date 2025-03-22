@@ -1,6 +1,6 @@
 <?php
 /**
- * Project: Laika MVC Framework
+ * Project: Cloud Bill Master Session Handler
  * Author Name: Showket Ahmed
  * Author Email: riyadhtayf@gmail.com
  */
@@ -8,9 +8,7 @@
 // Namespace
 namespace CBM\SessionHelper;
 
-use CBM\Model\Model;
-use Exception;
-use Throwable;
+use CBM\Session\SessionConnection;
 
 class Handler
 {
@@ -26,73 +24,40 @@ class Handler
 	// Session Path
 	public static String $path = '/';
 
-
-
     // DB ID
-    private $id = "ses_id";
+    private static string $id = "ses_id";
 
     // Table Name Var
-    private $table = "sessions";
+    private static $table = "sessions";
 
     // Data Var
-    private $session = "ses_data";
+    private static $session = "ses_data";
 
     // Last Update
-    private $access = "ses_last_access";
+    private static $access = "ses_last_access";
 
 	// Table Exist
 	private static Bool $exist = false;
 
-	// Session in Database
-	private static Bool $session_in_db = true;
-
-	// Session Instance
-	private static null|object $instance = null;
-
-	// Set Session in Database
-	/**
-	 * @param bool $bool - Default is true. Use false To Store Session in system tmp folder.
-	 */
-	public static function session_in_db(bool $bool = true):void
-	{
-		self::$session_in_db = $bool;
-	}
-
-	// Load Instance
-	protected static function instance()
-	{
-		self::$instance = self::$instance ?: new Static;
-		return self::$instance;
-	}
-
-
 	// Start Session
-    protected function start()
+    protected static function start()
 	{
-		// Check Database Model Exist
-		try {
-			if(!class_exists(Model::class)){
-				throw new Exception("'CBM\Model\Model' Class Does Not Exist", 50000);
-			}
-		} catch(Throwable $e){
-		}
-
         // Start Session
 		if(session_status() !== PHP_SESSION_ACTIVE)
 		{
-			if(self::$session_in_db){
+			if(SessionConnection::conn()){
 				// Create Table if Not Exist
 				if(!self::$exist){
-					$this->session_table_exist();
+					self::session_table_exist();
 				}
 
 				session_set_save_handler(
-					array($this, "open"),
-					array($this, "close"),
-					array($this, "read"),
-					array($this, "write"),
-					array($this, "destroy"),
-					array($this, "gc")
+					[__CLASS__, 'open'],
+					[__CLASS__, 'close'],
+					[__CLASS__, 'read'],
+					[__CLASS__, 'write'],
+					[__CLASS__, 'destroy'],
+					[__CLASS__, 'gc']
 				);
 				// register_shutdown_function("session_write_close");
 			}
@@ -118,70 +83,112 @@ class Handler
 	}
 
 	// Open DB Connection
-	public function open():bool
+	public static function open():bool
 	{
 		return true;
 	}
 
 	// Close DB Connection
-	public function close():bool
+	public static function close():bool
 	{
 		return true;
 	}
 
 	// Read DB Data
-	public function read($id):string
+	public static function read($id):string
 	{
-		$dbData = Model::table($this->table)->where([$this->id => $id])->single();
-		$data = json_decode(json_encode($dbData), true);
-		return $data[$this->session] ?? '';
+		$sql = "SELECT * FROM ".self::$table." WHERE ".self::$id."='{$id}'";
+		$stmt = SessionConnection::conn()->prepare($sql);
+		$stmt->execute();
+		$data = json_decode(json_encode($stmt->fetch()), true);
+		
+		// $dbData = Model::table($this->table)->where([$this->id => $id])->single();
+		// $data = json_decode(json_encode($dbData), true);
+		return $data[self::$session] ?? '';
 	}
 
 	// Insert DB Data
-	public function write($id, $data):bool
+	public static function write($id, $data):bool
 	{
 		// Create time stamp
 		$access = time();
 		// Insert/Update Data
 		$array = [
-			$this->id       =>  $id,
-			$this->access   =>  $access,
-			$this->session  =>  $data
+			self::$id       =>  $id,
+			self::$access   =>  $access,
+			self::$session  =>  $data
 		];
 
-		return Model::table($this->table)->replace($array) ? true : false;
+		$sql = "REPLACE INTO `".self::$table."` (".implode(',', array_keys($array)).") VALUES (?,?,?)";
+		// Prepare Statement
+		$stmt = SessionConnection::conn()->prepare($sql);
+		// Execute Statement
+		$stmt->execute(array_values($array));
+		// Count Effected Rows
+		$result = (int) $stmt->rowCount();
+		return $result ? true : false;
 	}
 
 	// Destroy DB Data
-	public function destroy($id):bool
+	public static function destroy($id):bool
 	{
-		return Model::table($this->table)->where([$this->id => $id])->pop() ? true : false;
+		$sql = "DELETE FROM ".self::$table." WHERE ".self::$id."='{$id}'";
+		// Prepare Statement
+		$stmt = SessionConnection::conn()->prepare($sql);
+		// Execute Statement
+		$stmt->execute();
+		// Count Effected Rows
+		$result = (int) $stmt->rowCount();
+		return $result ? true : false;
 	}
 
 	// Garbage Collection
-	public function gc($max):bool
+	public static function gc($max):bool
 	{
-		return Model::table($this->table)->where([$this->access => (time() - $max)], '<')->pop() ? true : false;
+		$exp = time() - $max;
+		$sql = "DELETE FROM ".self::$table." WHERE ".self::$access."<'{$exp}'";
+		// Prepare Statement
+		$stmt = SessionConnection::conn()->prepare($sql);
+		// Execute Statement
+		$stmt->execute();
+		// Count Effected Rows
+		$result = (int) $stmt->rowCount();
+		return $result ? true : false;
 	}
 
 	// Create Table if Not Exist
-	private function session_table_exist()
+	private static function session_table_exist()
 	{
-		if(!Model::table($this->table)->exist()){
-			$this->create_table();
+		if(!self::$exist){
+			// Prepare Statement
+			$stmt = SessionConnection::conn()->prepare("SHOW TABLES");
+			$stmt->execute();
+			// Execute Statement
+			$result = $stmt->fetchAll();
+			$result = json_decode(json_encode($result), true);
+			foreach($result as $res){
+				if(in_array(self::$table, $res)){
+					self::$exist = true;
+					return true;
+				}
+			}
+			self::create_table();
+			return true;
 		}
-		self::$exist = true;
+		return self::$exist;
 	}
 
 	// Create Session Table
-	private function create_table():void
+	private static function create_table():void
 	{
-		Model::table($this->table)
-				->column($this->id, 'VARCHAR(50)')
-				->column($this->access, 'INT(10)')
-				->column($this->session, 'LONGTEXT')
-				->primary($this->id)
-				->index($this->access)
-				->create();
+		$sql = "CREATE TABLE `".self::$table."` (
+				`".self::$id."` varchar(50) NOT NULL,
+				`".self::$access."` int(10) DEFAULT NULL,
+				`".self::$session."` longtext DEFAULT NULL,
+				PRIMARY KEY (`".self::$id."`),
+				KEY `".self::$access."` (`".self::$access."`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+		$stmt = SessionConnection::conn()->prepare($sql);
+		$stmt->execute();
 	}
 }
