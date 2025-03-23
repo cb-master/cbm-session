@@ -8,21 +8,12 @@
 // Namespace
 namespace CBM\SessionHelper;
 
-use CBM\Session\SessionConnection;
+use CBM\Session\SessionConfig;
 
 class Handler
 {
 	// Session Name
 	public static String $name = 'laika';
-
-	// Secure Session
-	public static Bool $secure = true;
-
-	// HTTP Secure Session
-	public static Bool $http = true;
-
-	// Session Path
-	public static String $path = '/';
 
     // DB ID
     private static string $id = "ses_id";
@@ -39,13 +30,36 @@ class Handler
 	// Table Exist
 	private static Bool $exist = false;
 
+	// Handler Config
+	private static function config():array
+	{
+		return [
+			'session.use_only_cookies'	=>	true,
+			'session.use_strict_mode'	=>	true,
+			'session.gc_probability'	=>	1,
+			'session.gc_divisor'		=>	100,
+			'session.gc_maxlifetime'	=>	strtotime("+10 minutes") - time()
+		];
+	}
+
+	// Handler Cookies
+	private static function cookies():array
+	{
+		return [
+			"path"      =>  '/cbm-laika',
+			"secure"    =>  true,
+			"httponly"  =>  true,
+			"samesite"  =>  "Strict"
+		];
+	}
+
 	// Start Session
     protected static function start()
 	{
         // Start Session
 		if(session_status() !== PHP_SESSION_ACTIVE)
 		{
-			if(SessionConnection::conn()){
+			if(SessionConfig::conn()){
 				// Create Table if Not Exist
 				if(!self::$exist){
 					self::session_table_exist();
@@ -62,21 +76,16 @@ class Handler
 				// register_shutdown_function("session_write_close");
 			}
 
+			$configs = array_merge(self::config(), SessionConfig::getConfig());
+
 			// Set Session Name
             session_name(self::$name);
-            ini_set("session.use_only_cookies",true);
-            ini_set("session.use_strict_mode",true);
-			ini_set('session.gc_probability', 1);
-			ini_set('session.gc_divisor', 100);
-            ini_set("session.gc_maxlifetime",strtotime("+5 minutes") - time());
-            // Set Parameters
-            session_set_cookie_params([
-                "path"      =>  self::$path,
-                "secure"    =>  self::$secure,
-                "httponly"  =>  self::$http,
-                "samesite"  =>  "strict"
-            ]);
-
+			// Set Session INI
+			array_filter($configs, function($val, $key){
+				ini_set($key, $val);
+			}, ARRAY_FILTER_USE_BOTH);
+            // Set Session Parameters
+            session_set_cookie_params(array_merge(self::cookies(), SessionConfig::getCookie()));
             // Start Session
             session_start();
         }
@@ -98,12 +107,9 @@ class Handler
 	public static function read($id):string
 	{
 		$sql = "SELECT * FROM ".self::$table." WHERE ".self::$id."='{$id}'";
-		$stmt = SessionConnection::conn()->prepare($sql);
+		$stmt = SessionConfig::conn()->prepare($sql);
 		$stmt->execute();
 		$data = json_decode(json_encode($stmt->fetch()), true);
-		
-		// $dbData = Model::table($this->table)->where([$this->id => $id])->single();
-		// $data = json_decode(json_encode($dbData), true);
 		return $data[self::$session] ?? '';
 	}
 
@@ -121,7 +127,7 @@ class Handler
 
 		$sql = "REPLACE INTO `".self::$table."` (".implode(',', array_keys($array)).") VALUES (?,?,?)";
 		// Prepare Statement
-		$stmt = SessionConnection::conn()->prepare($sql);
+		$stmt = SessionConfig::conn()->prepare($sql);
 		// Execute Statement
 		$stmt->execute(array_values($array));
 		// Count Effected Rows
@@ -134,7 +140,7 @@ class Handler
 	{
 		$sql = "DELETE FROM ".self::$table." WHERE ".self::$id."='{$id}'";
 		// Prepare Statement
-		$stmt = SessionConnection::conn()->prepare($sql);
+		$stmt = SessionConfig::conn()->prepare($sql);
 		// Execute Statement
 		$stmt->execute();
 		// Count Effected Rows
@@ -148,7 +154,7 @@ class Handler
 		$exp = time() - $max;
 		$sql = "DELETE FROM ".self::$table." WHERE ".self::$access."<'{$exp}'";
 		// Prepare Statement
-		$stmt = SessionConnection::conn()->prepare($sql);
+		$stmt = SessionConfig::conn()->prepare($sql);
 		// Execute Statement
 		$stmt->execute();
 		// Count Effected Rows
@@ -161,7 +167,7 @@ class Handler
 	{
 		if(!self::$exist){
 			// Prepare Statement
-			$stmt = SessionConnection::conn()->prepare("SHOW TABLES");
+			$stmt = SessionConfig::conn()->prepare("SHOW TABLES");
 			$stmt->execute();
 			// Execute Statement
 			$result = $stmt->fetchAll();
@@ -188,7 +194,7 @@ class Handler
 				PRIMARY KEY (`".self::$id."`),
 				KEY `".self::$access."` (`".self::$access."`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
-		$stmt = SessionConnection::conn()->prepare($sql);
+		$stmt = SessionConfig::conn()->prepare($sql);
 		$stmt->execute();
 	}
 }
