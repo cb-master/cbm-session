@@ -21,7 +21,5 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {
-        "cb-master/cbm-model": "dev-main"
-    }
+    "require": {}
 }

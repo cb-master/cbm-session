@@ -8,8 +8,6 @@
 // Namespace
 namespace CBM\Session;
 
-use Exception;
-
 class SessionConnection
 {
 	// Database Connection
