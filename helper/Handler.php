@@ -46,7 +46,7 @@ class Handler
 	private static function cookies():array
 	{
 		return [
-			"path"      =>  '/cbm-laika',
+			"path"      =>  '/',
 			"secure"    =>  true,
 			"httponly"  =>  true,
 			"samesite"  =>  "Strict"
